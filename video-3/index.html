@@ -1,0 +1,325 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<script>
+(function() {
+  try {
+    var urlParams = new URLSearchParams(window.location.search);
+
+    // Salva UTMs se vieram na URL
+    var hasUtms = urlParams.has('utm_source') || urlParams.has('utm_medium') || urlParams.has('utm_campaign');
+    if (hasUtms) {
+      var params = {};
+      ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id'].forEach(function(k) {
+        var v = urlParams.get(k);
+        if (v) params[k] = v;
+      });
+      localStorage.setItem('TrackingParams', JSON.stringify(params));
+    }
+
+    // Salva sck SOMENTE se veio explicitamente na URL (nao injeta automaticamente)
+    var sck = urlParams.get('sck');
+    if (sck) localStorage.setItem('IndexTrack', sck);
+
+    // Recupera UTMs perdidos - mas NAO injeta sck se nao veio na URL
+    if (!hasUtms) {
+      var saved = localStorage.getItem('TrackingParams');
+      if (!saved) return;
+      var savedUtms = JSON.parse(saved);
+      var rebuild = new URLSearchParams(window.location.search);
+      for (var k in savedUtms) {
+        if (savedUtms.hasOwnProperty(k) && !rebuild.has(k)) rebuild.set(k, savedUtms[k]);
+      }
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + '?' + rebuild.toString());
+      }
+    }
+  } catch(e) {}
+})();
+</script>
+
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <title>Video Rewards - Watch & Earn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/vsl-style.css">
+  <script src="js/lucide.js"></script>
+  <script src="js/lottie.min.js"></script>
+
+  <style>
+    :root{--content-max:720px;--title-color:#4B5761;}
+    .video-timer-wrap{max-width:var(--content-max);margin:0 auto;padding:8px 16px 4px}
+    .video-timer{display:flex;align-items:center;gap:10px;font-size:13px;color:#6b7280}
+    .timer-bar{flex:1;height:4px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+    .timer-bar .fill{height:100%;width:0%;background:linear-gradient(90deg,#16a34a,#22c55e);border-radius:999px;transition:width .3s linear}
+    .timer-text{font-weight:600;white-space:nowrap;min-width:70px;text-align:right}
+    .btn{transition:transform .12s ease, box-shadow .12s ease, filter .12s ease!important;user-select:none;-webkit-tap-highlight-color:transparent}
+    .btn:active{transform:scale(.95)!important;filter:brightness(.9)}
+    .btn-positive{position:relative;overflow:hidden}
+    .btn-positive .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.3);transform:scale(0);animation:rippleAnim .5s ease-out;pointer-events:none}
+    @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+    .page-fade{animation:pageIn .4s cubic-bezier(.2,.9,.3,1) both}
+    @keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .page-fade-out{animation:pageOut .25s cubic-bezier(.2,.9,.3,1) both}
+    @keyframes pageOut{from{opacity:1}to{opacity:0}}
+  </style>
+
+<!-- Utmify -->
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+<script>
+  window.pixelId = "6a442062ca1915cae75ce1ee";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+<!-- End Utmify -->
+
+
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xg9mitkds8");
+</script>
+</head>
+<body>
+  <script>
+    window.PAGE_ID = 'vsl3';
+    window.NEXT_PAGE = '/withdraw/';
+  </script>
+
+  <div class="board page-fade" role="main" aria-label="Board VSL3">
+    <header class="vsl-header">
+      <div class="hdr-left">
+        <div class="logo-wrap">
+          <img id="logoImg" src="images/logo.png" alt="Logo" width="200" height="64">
+        </div>
+      </div>
+      <div class="hdr-right">
+        <div class="wallet" id="walletBox" title="Saldo na carteira" aria-live="polite">
+          <i data-lucide="wallet" width="22" height="22" class="wallet-img"></i>
+          <span class="wallet-amount" id="walletAmount">US$ 0.00</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="vsl-content">
+      <div class="player-wrap">
+      <div style="position:relative;padding-top:56.25%;"><iframe id="panda-04ddf9dd-8d27-4f5b-9e5f-c90e917f4596" src="https://player-vz-42160213-c03.tv.pandavideo.com.br/embed/?v=04ddf9dd-8d27-4f5b-9e5f-c90e917f4596" style="border:none;position:absolute;top:0;left:0;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture" allowfullscreen="true" width="100%" height="100%" fetchpriority="high"></iframe></div>      </div>
+
+      <!-- Video timer -->
+      <div class="video-timer-wrap">
+        <div class="video-timer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div class="timer-bar"><div class="fill" id="timerFill"></div></div>
+          <span class="timer-text" id="timerText">0:30</span>
+        </div>
+      </div>
+
+      <div class="meta-interaction">
+        <div class="video-header">
+          <h1 class="video-title">Self Control Who I McDonald's</h1>
+          <p class="video-stats">987K views · 29 days ago</p>
+
+          <div class="channel-row">
+            <div class="channel-left">
+              <div class="brand-wrap">
+                <img src="images/mcdonald.png" alt="Marca" class="brand-img">
+              </div>
+              <span class="channel-name">McDonald's</span>
+            </div>
+
+            <div class="channel-right">
+              <div class="partner-verified" role="status" aria-label="Partner verified">
+                <span class="pv-text">Partner verified</span>
+                <div class="pv-check" aria-hidden="true">✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reply-card-wrapper">
+          <div class="reply-card efeitoloop" id="replyCard" aria-live="polite">
+            <div class="reply-title">Reply to receive:</div>
+            <div class="question">Is this video relevant to you?</div>
+            <div class="reply-actions">
+              <button class="btn btn-negative" id="btnNot" type="button"><i data-lucide="thumbs-down" style="margin-right:8px;" aria-hidden="true"></i>Not relevant</button>
+              <button class="btn btn-positive" id="btnYes" type="button"><i data-lucide="thumbs-up" style="margin-right:8px;" aria-hidden="true"></i>Relevant</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="blocked-images">
+          <img src="images/bloqueado3.png" alt="Blocked 3" class="blocked-img">
+          <img src="images/bloqueado4.png" alt="Blocked 4" class="blocked-img">
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="vsl-footer">
+      <div class="footer-inner">Secure • Fast • Anonymous</div>
+    </footer>
+  </div>
+
+  <!-- REWARD MODAL -->
+  <div id="rewardModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card" role="document" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" aria-label="Close modal">×</button>
+
+      <div class="modal-check">
+          <div class="modal-check-inner" aria-hidden="true">
+            <div class="circle-bg" style="width:100%; height:100%; line-height:0;">
+              <!-- Inline animated SVG (ring + inner + check). CSS (.modal-check.animate ...) drives the animation -->
+              <!-- Lottie container for animated check (preferred when JSON available) -->
+              <div id="lottie-check-v3" class="lottie-container" style="width:96px;height:96px;margin:0 auto;display:block"></div>
+              <!-- WebM animation fallback: check.webm (local) -->
+              <video id="checkVideo-v3" class="success-video" src="media/check.webm" muted="" playsinline="" preload="auto" style="width:96px;height:96px;margin:0 auto;display:block"></video>
+            </div>
+          </div>
+      </div>
+
+      <div class="modal-amount" id="modalAmount">
+        <div class="amount-box">
+          <div class="amount-title">+ US$ 71.48</div>
+          <div class="amount-sub">Has been added to your balance!</div>
+        </div>
+      </div>
+
+      <div class="modal-note">Keep evaluating to earn more! <span aria-hidden="true">🚀</span></div>
+    </div>
+  </div>
+
+  <script src="js/vsl-script.js"></script>
+  <script src="js/reaction-sound.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+  <script src="js/modal-check-init.js"></script>
+
+  <!-- Video timer + micro-interactions + smooth transition -->
+  <script>
+  (function(){
+    var TIMER_DURATION = 30;
+    var timerFill = document.getElementById('timerFill');
+    var timerText = document.getElementById('timerText');
+    var board = document.querySelector('.board');
+    var startTime = Date.now();
+
+    function updateTimer(){
+      var elapsed = (Date.now() - startTime) / 1000;
+      var remaining = Math.max(0, TIMER_DURATION - elapsed);
+      var pct = Math.min(100, (elapsed / TIMER_DURATION) * 100);
+      if(timerFill) timerFill.style.width = pct + '%';
+      if(timerText) timerText.textContent = '0:' + String(Math.ceil(remaining)).padStart(2, '0');
+      if(remaining > 0) requestAnimationFrame(updateTimer);
+    }
+    requestAnimationFrame(updateTimer);
+
+    document.querySelectorAll('.btn-positive, .btn-negative').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        var rect = btn.getBoundingClientRect();
+        var ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        var size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(function(){ ripple.remove(); }, 500);
+      });
+    });
+
+    var origReplace = window.location.replace;
+    window.smoothNavigate = function(url){
+      if(board) board.classList.add('page-fade-out');
+      setTimeout(function(){ origReplace.call(window.location, url); }, 280);
+    };
+
+    var _origHref = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
+    try {
+      Object.defineProperty(window.location, 'href', {
+        get: function(){ return _origHref.get.call(window.location); },
+        set: function(val){
+          if(val && val !== window.location.href && !val.startsWith('javascript')){
+            window.smoothNavigate(val);
+          } else {
+            _origHref.set.call(window.location, val);
+          }
+        }
+      });
+    } catch(e) {}
+
+    var origNext = window.NEXT_PAGE;
+    if(origNext){
+      var checkNav = setInterval(function(){
+        var els = document.querySelectorAll('[data-nav-attached]');
+        els.forEach(function(el){
+          if(!el.hasAttribute('data-smooth')){
+            el.setAttribute('data-smooth', 'true');
+            el.addEventListener('click', function(e){
+              e.preventDefault();
+              window.smoothNavigate(el.getAttribute('href') || origNext);
+            });
+          }
+        });
+      }, 500);
+    }
+  })();
+  </script>
+
+  <!-- BUTTON FORCER -->
+  <script>
+  (function() {
+    function forceParamsOnButtons() {
+      try {
+        var currentParams = window.location.search;
+        if (!currentParams) return;
+        
+        var selectors = ['a[href*="video"]', 'a[href*="withdraw"]', 'a[href*="final"]', 'button[onclick*="video"]', 'button[onclick*="withdraw"]', '[data-href*="video"]'];
+        var elements = document.querySelectorAll(selectors.join(','));
+        
+        for (var i = 0; i < elements.length; i++) {
+          var element = elements[i];
+          if (element.hasAttribute('data-utm-forced')) continue;
+          
+          element.setAttribute('data-utm-forced', 'true');
+          element.addEventListener('click', function(e) {
+            try {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              var href = this.getAttribute('href') || this.getAttribute('data-href') || this.getAttribute('data-url');
+              if (!href) return;
+              var baseHref = href.split('?')[0].split('#')[0];
+              window.location.href = baseHref + currentParams;
+            } catch (err) {}
+          }, true);
+        }
+      } catch (e) {}
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', forceParamsOnButtons);
+    } else {
+      forceParamsOnButtons();
+    }
+    
+    if (window.MutationObserver) {
+      var observer = new MutationObserver(function(mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+          if (mutations[i].addedNodes.length > 0) forceParamsOnButtons();
+        }
+      });
+      if (document.body) observer.observe(document.body, {childList: true, subtree: true});
+    }
+  })();
+  </script>
+
+</body></html>

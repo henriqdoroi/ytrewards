@@ -1,0 +1,387 @@
+<!DOCTYPE html><html lang="en"><head>
+<script>
+(function() {
+  try {
+    var urlParams = new URLSearchParams(window.location.search);
+
+    // Salva UTMs se vieram na URL
+    var hasUtms = urlParams.has('utm_source') || urlParams.has('utm_medium') || urlParams.has('utm_campaign');
+    if (hasUtms) {
+      var params = {};
+      ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id'].forEach(function(k) {
+        var v = urlParams.get(k);
+        if (v) params[k] = v;
+      });
+      localStorage.setItem('TrackingParams', JSON.stringify(params));
+    }
+
+    // Salva sck SOMENTE se veio explicitamente na URL (nao injeta automaticamente)
+    var sck = urlParams.get('sck');
+    if (sck) localStorage.setItem('IndexTrack', sck);
+
+    // Recupera UTMs perdidos - mas NAO injeta sck se nao veio na URL
+    if (!hasUtms) {
+      var saved = localStorage.getItem('TrackingParams');
+      if (!saved) return;
+      var savedUtms = JSON.parse(saved);
+      var rebuild = new URLSearchParams(window.location.search);
+      for (var k in savedUtms) {
+        if (savedUtms.hasOwnProperty(k) && !rebuild.has(k)) rebuild.set(k, savedUtms[k]);
+      }
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + '?' + rebuild.toString());
+      }
+    }
+  } catch(e) {}
+})();
+</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <title>Video Rewards - Watch & Earn</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="dns-prefetch" href="https://cdn.converteai.net">
+  <link rel="dns-prefetch" href="https://scripts.converteai.net">
+  <link rel="dns-prefetch" href="https://images.converteai.net">
+  <link rel="dns-prefetch" href="https://api.vturb.com.br">
+  <link rel="prefetch" href="../video-1/">
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#282828;
+      --muted:#4b5563;
+      --muted-2:#9aa0a6;
+      --green:#16a34a;
+      --green-2:#15803d;
+      --green-dark:#166534;
+      --red:#dc2626;
+      --yt-red:#FF0000;
+      --card-bg:#ffffff;
+      --radius:14px;
+      --shadow-card: 0 10px 40px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.04);
+      --shadow-cta: 0 8px 0 var(--green-dark);
+      --max-width:768px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      background:linear-gradient(180deg,#ffffff 0%,#ffffff 60%,#f8fafc 100%);
+      font-family:"Roboto",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.5;
+      overflow-x:hidden;
+    }
+    .board{
+      width:90%;
+      max-width:var(--max-width);
+      margin:0 auto;
+      min-height:100svh;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      padding:32px 0 24px;
+    }
+
+    /* HEADER */
+    .vsl-header{width:100%;display:flex;justify-content:center;align-items:center;padding:8px 0 22px;text-align:center}
+    .logo-wrap{display:flex;align-items:center;justify-content:center;width:100%}
+    .logo-wrap img{width:280px;max-width:70%;height:auto;display:block;margin:0 auto;object-fit:contain}
+
+    /* MAIN CARD */
+    .vsl-content{
+      background:var(--card-bg);
+      border-radius:18px;
+      padding:36px 28px 32px;
+      text-align:center;
+      box-shadow:var(--shadow-card);
+      position:relative;
+    }
+    .title{
+      font-size:clamp(28px,5vw,36px);
+      margin:0 0 18px;
+      font-weight:800;
+      color:var(--text);
+      letter-spacing:-0.01em;
+    }
+    .lead{
+      font-size:clamp(15px,2.4vw,17px);
+      color:var(--muted);
+      margin:14px 0;
+    }
+    .program{
+      font-size:clamp(22px,3.6vw,28px);
+      font-weight:700;
+      margin:18px 0 8px;
+      color:var(--text);
+    }
+    .program .yt{color:var(--yt-red);font-weight:800}
+    .accent-green{color:var(--green);font-weight:700}
+    .accent-red{color:var(--red);font-weight:700}
+
+    /* CTA — 3D button (mantém o padrão validado) */
+    .cta-wrap{display:flex;justify-content:center;margin:26px 0 18px}
+    .cta{
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      width:100%;
+      max-width:520px;
+      min-height:56px;
+      padding:14px 26px;
+      font-size:17px;
+      font-weight:800;
+      color:#fff;
+      background:var(--green);
+      border:none;
+      border-radius:12px;
+      cursor:pointer;
+      text-decoration:none;
+      box-shadow:var(--shadow-cta);
+      transition:transform .12s ease, box-shadow .12s ease, background-color .15s ease;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      letter-spacing:.2px;
+    }
+    .cta:hover{background:#15a047}
+    .cta:active{transform:translateY(6px);box-shadow:0 2px 0 var(--green-dark)}
+    .cta:focus-visible{outline:3px solid rgba(22,163,74,.35);outline-offset:3px}
+
+    /* Botão pulsante: respira via cor + halo (sem scale -> texto crisp, tamanho fixo) */
+    .cta-pulse{isolation:isolate;animation:cta-breathe 1.3s ease-in-out infinite}
+    @keyframes cta-breathe{
+      0%,100%{background-color:var(--green)}
+      50%    {background-color:#18b554}
+    }
+    .cta-pulse::after{
+      content:"";
+      position:absolute;inset:0;
+      border-radius:inherit;
+      pointer-events:none;
+      z-index:-1;
+      box-shadow:0 0 0 0 rgba(74,222,128,0);
+      animation:halo 1.3s ease-in-out infinite;
+    }
+    @keyframes halo{
+      0%   {box-shadow:0 0 0 0 rgba(74,222,128,.6)}
+      65%  {box-shadow:0 0 0 14px rgba(74,222,128,0)}
+      100% {box-shadow:0 0 0 0 rgba(74,222,128,0)}
+    }
+    @media (prefers-reduced-motion:reduce){.cta-pulse,.cta-pulse::after{animation:none}}
+
+    .secure-row{color:var(--text);font-weight:500;margin:18px 0 6px;font-size:14px}
+    .bonus-row{color:var(--muted);font-size:15px;margin:12px 0}
+    .rate-row{font-weight:700;margin:18px 0 0;font-size:15px}
+
+    /* Gamification — trust badges */
+    .badge-strip{
+      display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+      margin:6px 0 -4px;
+    }
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:999px;
+      background:#ecfdf5;color:var(--green-2);
+      font-size:12px;font-weight:700;letter-spacing:.3px;
+      border:1px solid #d1fae5;
+    }
+    .badge .dot{
+      width:6px;height:6px;border-radius:50%;background:var(--green);
+      box-shadow:0 0 0 3px rgba(22,163,74,.18);
+      animation:ping 1.6s ease-in-out infinite;
+    }
+    @keyframes ping{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+    @media (prefers-reduced-motion:reduce){.badge .dot{animation:none}}
+
+    /* Live activity toast */
+    .live-toast{
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(120%);
+      background:#0f172a;color:#fff;padding:10px 14px;border-radius:12px;
+      font-size:13px;line-height:1.3;max-width:92%;text-align:left;
+      box-shadow:0 10px 30px rgba(2,6,23,.25);
+      display:flex;align-items:center;gap:10px;
+      transition:transform .45s cubic-bezier(.2,.8,.2,1);
+      z-index:60;pointer-events:none;
+    }
+    .live-toast.show{transform:translateX(-50%) translateY(0)}
+    .live-toast .avatar{
+      width:28px;height:28px;border-radius:50%;
+      display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px;flex:0 0 auto;
+    }
+    .live-toast b{color:#a7f3d0}
+
+    /* FOOTER */
+    .bottom-line{margin-top:22px;text-align:center;color:var(--muted-2);font-size:13px;padding:14px 0 6px}
+
+    /* RESPONSIVE */
+    @media (max-width:640px){
+      .board{padding:18px 0 16px}
+      .vsl-content{padding:26px 18px 22px;border-radius:16px}
+      .cta{font-size:16px;min-height:54px}
+    }
+    @media (min-width:900px){
+      .vsl-content{padding:46px 40px 38px}
+      .title{font-size:38px}
+    }
+
+    .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+    /* Live social proof counter */
+    .live-counter{display:flex;align-items:center;justify-content:center;gap:8px;margin:18px 0 0;font-size:14px;color:var(--muted);animation:fadeUp .6s ease 2s both}
+    .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.18);animation:ping 1.6s ease-in-out infinite;flex:0 0 auto}
+    .live-count{font-weight:800;color:var(--text)}
+    .live-label{font-weight:400}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  </style>
+
+
+
+<!-- Utmify -->
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+<script>
+  window.pixelId = "6a442062ca1915cae75ce1ee";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+<!-- End Utmify -->
+
+
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xg9mitkds8");
+</script>
+</head>
+<body>
+
+  <div class="board" role="main" aria-label="Landing principal">
+    <header class="vsl-header">
+      <div class="logo-wrap">
+      </div>
+    </header>
+
+    <main class="vsl-content">
+      <h1 class="title">Congratulations!</h1>
+      <p class="lead">You have been selected for a <span class="accent-green">paid</span> content analysis.</p>
+      <p class="program"><span class="yt">YouTube</span> Creator Partner Program</p>
+
+      <div class="cta-wrap">
+        <a class="cta cta-pulse" id="startBtn" href="../video-1/" role="button" aria-label="Start now" data-nav-attached="true">Start now!</a>
+      </div>
+
+      <div class="badge-strip" aria-hidden="true">
+        <span class="badge"><span class="dot"></span>Secure</span>
+        <span class="badge"><span class="dot"></span>No spam</span>
+        <span class="badge"><span class="dot"></span>Instant access</span>
+      </div>
+
+      <p class="bonus-row">A <span class="accent-red">bonus</span> of <span class="accent-green">$71</span> will be added to each review.</p>
+      <p class="rate-row">Rate some simple videos!</p>
+
+      <!-- Live social proof counter -->
+      <div class="live-counter">
+        <span class="live-dot"></span>
+        <span class="live-count" id="viewerCount">2,847</span>
+        <span class="live-label">people are watching now</span>
+      </div>
+    </main>
+
+    <footer class="bottom-line">Secure • Fast • Anonymous</footer>
+  </div>
+
+  <!-- Live activity toast (gamification) -->
+  <div class="live-toast" id="liveToast" role="status" aria-live="polite">
+    <div class="avatar" id="liveAvatar">S</div>
+    <div><span id="liveMsg">Sarah from California just earned <b>$213</b></span></div>
+  </div>
+
+  <!-- NAVIGATOR: preserva params da URL nos cliques -->
+  <script>
+  (function(){
+    function attachNavigator(){
+      var sels=['a[href*="video"]','a[href*="/video-"]','a[href*="final"]','button[onclick*="video"]','[data-href*="video"]'];
+      var els=document.querySelectorAll(sels.join(','));
+      for(var i=0;i<els.length;i++){
+        var el=els[i];
+        if(el.hasAttribute('data-nav-attached')) continue;
+        el.setAttribute('data-nav-attached','true');
+        el.addEventListener('click',function(e){
+          e.preventDefault();e.stopImmediatePropagation();
+          var href=this.getAttribute('href')||this.getAttribute('data-href')||this.getAttribute('data-url')||'';
+          var parts=href.split('?');var base=parts[0].split('#')[0];if(!base) return;
+          var url=new URLSearchParams(window.location.search);
+          var hp=new URLSearchParams(parts[1]||'');
+          hp.forEach(function(v,k){if(!url.has(k)) url.set(k,v);});
+          var q=url.toString();window.location.href=base+(q?'?'+q:'');
+        },true);
+      }
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',attachNavigator);
+    else attachNavigator();
+    if(window.MutationObserver){
+      new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].addedNodes.length){attachNavigator();break;}}})
+        .observe(document.body||document.documentElement,{childList:true,subtree:true});
+    }
+  })();
+  </script>
+
+  <!-- Live viewer counter -->
+  <script>
+  (function(){
+    var el=document.getElementById('viewerCount');
+    if(!el)return;
+    var base=2847;
+    setInterval(function(){
+      base+=Math.round((Math.random()-.5)*6);
+      if(base<2500)base=2500;
+      if(base>3500)base=3500;
+      el.textContent=base.toLocaleString();
+    },5000);
+  })();
+  </script>
+
+  <!-- Gamification: live activity toast loop -->
+  <script>
+  (function(){
+    var NAMES=[
+      ['Sarah','California','S','#16a34a'],
+      ['Mike','Texas','M','#0ea5e9'],
+      ['Emma','Florida','E','#f59e0b'],
+      ['John','New York','J','#8b5cf6'],
+      ['Olivia','Ohio','O','#ef4444'],
+      ['Liam','Georgia','L','#10b981']
+    ];
+    var toast=document.getElementById('liveToast');
+    var msg=document.getElementById('liveMsg');
+    var av=document.getElementById('liveAvatar');
+    var idx=0;
+    function rotate(){
+      var n=NAMES[idx%NAMES.length]; idx++;
+      var amount=180+Math.floor(Math.random()*120);
+      av.textContent=n[2]; av.style.background=n[3];
+      msg.innerHTML=n[0]+' from '+n[1]+' just earned <b>$'+amount+'</b>';
+      toast.classList.add('show');
+      setTimeout(function(){ toast.classList.remove('show'); schedule(); }, 3200);
+    }
+    function schedule(){ setTimeout(rotate, 4500+Math.random()*2500); }
+    setTimeout(rotate, 3200);
+  })();
+  </script>
+
+
+</body></html>

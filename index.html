@@ -1,0 +1,396 @@
+<!DOCTYPE html><html lang="en"><head>
+<script>
+(function() {
+  try {
+    var urlParams = new URLSearchParams(window.location.search);
+
+    // Salva UTMs se vieram na URL
+    var hasUtms = urlParams.has('utm_source') || urlParams.has('utm_medium') || urlParams.has('utm_campaign');
+    if (hasUtms) {
+      var params = {};
+      ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id'].forEach(function(k) {
+        var v = urlParams.get(k);
+        if (v) params[k] = v;
+      });
+      localStorage.setItem('TrackingParams', JSON.stringify(params));
+    }
+
+    // Salva sck SOMENTE se veio explicitamente na URL (nao injeta automaticamente)
+    var sck = urlParams.get('sck');
+    if (sck) localStorage.setItem('IndexTrack', sck);
+
+    // Recupera UTMs perdidos - mas NAO injeta sck se nao veio na URL
+    if (!hasUtms) {
+      var saved = localStorage.getItem('TrackingParams');
+      if (!saved) return;
+      var savedUtms = JSON.parse(saved);
+      var rebuild = new URLSearchParams(window.location.search);
+      for (var k in savedUtms) {
+        if (savedUtms.hasOwnProperty(k) && !rebuild.has(k)) rebuild.set(k, savedUtms[k]);
+      }
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + '?' + rebuild.toString());
+      }
+    }
+  } catch(e) {}
+})();
+</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <title>Secure Access — Verification</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Prefetch destino para tornar a transição instantânea -->
+  <link rel="prefetch" href="/v1/">
+  <link rel="dns-prefetch" href="https://cdn.converteai.net">
+  <link rel="dns-prefetch" href="https://scripts.converteai.net">
+  <link rel="dns-prefetch" href="https://images.converteai.net">
+  <link rel="dns-prefetch" href="https://api.vturb.com.br">
+
+  <style>
+    :root{
+      --bg:#f8faff;
+      --text:#111827;
+      --muted:#4b5563;
+      --muted-2:#9ca3af;
+      --green:#16a34a;
+      --green-2:#15803d;
+      --green-dark:#166534;
+      --green-glow:rgba(22,163,74,0.12);
+      --radius:20px;
+      --shadow-card: 0 30px 80px rgba(15,23,42,.08), 0 4px 12px rgba(15,23,42,.04);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      background:
+        radial-gradient(900px 540px at 10% -10%, #dcfce7 0%, rgba(255,255,255,0) 60%),
+        radial-gradient(700px 460px at 110% 110%, #dcfce7 0%, rgba(255,255,255,0) 55%),
+        linear-gradient(180deg,#f8faff,#f0fdf4);
+      font-family:"Roboto",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.5;
+      overflow-x:hidden;
+    }
+    .stage{
+      min-height:100svh;
+      display:flex;align-items:center;justify-content:center;
+      padding:24px;
+    }
+    .page-fade{animation:pgIn .45s cubic-bezier(.15,.85,.3,1) both}
+    @keyframes pgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    .card{
+      position:relative;
+      width:100%;max-width:420px;
+      background:#fff;border-radius:var(--radius);
+      box-shadow:var(--shadow-card);
+      padding:32px 26px 24px;text-align:center;
+      animation:rise .5s cubic-bezier(.15,.85,.3,1) both;
+      border:1px solid rgba(255,255,255,.5);
+    }
+    @keyframes rise{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+
+    .head{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      font-size:11px;font-weight:800;letter-spacing:.2em;color:#6b7280;
+      text-transform:uppercase;margin-bottom:24px;
+    }
+    .head .sq{width:12px;height:12px;border-radius:4px;background:var(--green);box-shadow:0 0 0 4px var(--green-glow);animation:sq-pulse 2s ease-in-out infinite}
+    @keyframes sq-pulse{0%,100%{box-shadow:0 0 0 4px var(--green-glow)}50%{box-shadow:0 0 0 8px rgba(22,163,74,.06)}}
+
+    .ring-wrap{position:relative;width:170px;height:170px;margin:6px auto 18px}
+    .ring{transform:rotate(-90deg);width:100%;height:100%}
+    .ring circle{fill:none;stroke-width:10;stroke-linecap:round}
+    .ring .track{stroke:#e5e7eb}
+    .ring .fill{
+      stroke:url(#g);
+      stroke-dasharray:471;stroke-dashoffset:471;
+      transition:stroke-dashoffset .3s cubic-bezier(.2,.9,.3,1);
+      filter:drop-shadow(0 0 6px rgba(22,163,74,.25));
+    }
+    .pct{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      font-size:36px;font-weight:900;color:#111827;letter-spacing:-.03em;
+      transition:color .3s ease;
+    }
+    .pct.done{color:var(--green)}
+
+    .title{font-size:25px;font-weight:900;margin:10px 0 6px;color:#111827;letter-spacing:-.3px}
+    .status{color:var(--muted);font-size:14px;margin:0 0 22px;min-height:21px;font-weight:400}
+
+    .list{list-style:none;padding:0;margin:8px 0 18px;display:flex;flex-direction:column;gap:10px}
+    .item{
+      display:flex;align-items:center;gap:12px;
+      padding:14px 16px;border-radius:14px;background:#f9fafb;
+      transition:background .3s ease, transform .25s ease;
+      border:1px solid transparent;
+    }
+    .item .dot{
+      width:14px;height:14px;border-radius:50%;background:#d1d5db;flex:0 0 auto;
+      transition:background .3s ease, box-shadow .3s ease, transform .3s ease;
+    }
+    .item .label{flex:1;text-align:left;font-size:14px;color:#374151;font-weight:500}
+    .item .state{font-size:11px;font-weight:800;letter-spacing:.14em;color:#9ca3af;text-transform:uppercase}
+    .item.passed{background:#ecfdf5;border-color:#bbf7d0;transform:scale(1.01)}
+    .item.passed .dot{background:var(--green);box-shadow:0 0 0 4px rgba(22,163,74,.2);transform:scale(1.08)}
+    .item.passed .state{color:var(--green-2)}
+
+    .foot{
+      font-size:10px;font-weight:700;letter-spacing:.2em;color:#9ca3af;
+      text-transform:uppercase;margin-top:6px;
+    }
+
+    /* Earnings reveal floating above card */
+    .earn-pop{
+      position:absolute;top:-16px;left:50%;
+      transform:translate(-50%,-4px) scale(.9);
+      background:linear-gradient(135deg,#ecfdf5,#dcfce7);color:var(--green-2);
+      border:1px solid #86efac;border-radius:999px;
+      padding:8px 16px;font-size:12px;font-weight:800;
+      display:inline-flex;align-items:center;gap:8px;
+      letter-spacing:.04em;white-space:nowrap;
+      box-shadow:0 10px 24px rgba(22,163,74,.2);
+      opacity:0;
+      transition:opacity .4s ease, transform .4s cubic-bezier(.2,.8,.2,1);
+      z-index:2;
+    }
+    .earn-pop.show{opacity:1;transform:translate(-50%,0) scale(1)}
+    .coin{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#fde68a,#f59e0b);box-shadow:inset 0 -2px 0 rgba(0,0,0,.1),0 0 0 2px #fff;animation:coin-bounce 1.2s ease-in-out infinite}
+    @keyframes coin-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+
+    /* Success overlay (sobre o card) */
+    .success{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;visibility:hidden;pointer-events:none;
+      transition:opacity .35s ease, visibility 0s linear .35s;
+      border-radius:var(--radius);overflow:hidden;
+    }
+    .success.open{opacity:1;visibility:visible;transition:opacity .35s ease}
+    .success::before{
+      content:"";position:absolute;inset:0;
+      background:rgba(255,255,255,.75);
+      backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    }
+    .success-card{
+      position:relative;background:#fff;border-radius:18px;
+      padding:26px 24px 20px;text-align:center;
+      box-shadow:0 20px 60px rgba(15,23,42,.2);
+      transform:scale(.9) translateY(8px);transition:transform .4s cubic-bezier(.15,.85,.3,1), opacity .3s ease;
+      opacity:0;max-width:280px;
+    }
+    .success.open .success-card{transform:scale(1) translateY(0);opacity:1}
+    .tick{
+      width:72px;height:72px;border-radius:50%;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      display:grid;place-items:center;margin:0 auto 14px;
+      box-shadow:0 8px 24px rgba(22,163,74,.4);
+      animation:pop .6s cubic-bezier(.15,.85,.3,1);
+    }
+    @keyframes pop{0%{transform:scale(.3);opacity:0}55%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+    .tick svg{width:34px;height:34px;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.1))}
+    .s-title{font-size:19px;font-weight:900;margin:6px 0 4px;color:#111827;letter-spacing:-.2px}
+    .s-sub{font-size:13px;color:#6b7280;margin:0;line-height:1.4}
+
+    .confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:var(--radius)}
+    .confetti i{
+      position:absolute;top:-14px;width:7px;height:10px;border-radius:2px;opacity:0;
+      animation:fall 1600ms cubic-bezier(.2,.8,.2,1) forwards;
+    }
+    @keyframes fall{0%{opacity:0;transform:translateY(0) rotate(0) scale(1)}8%{opacity:1}100%{opacity:0;transform:translateY(500px) rotate(600deg) scale(.6)}}
+
+    @media (max-width:420px){
+      .card{padding:28px 20px 20px;border-radius:16px}
+      .ring-wrap{width:150px;height:150px;margin:4px auto 14px}
+      .pct{font-size:32px}
+      .title{font-size:22px}
+      .item{padding:12px 14px}
+      .item .label{font-size:13px}
+      .head{font-size:10px;margin-bottom:20px}
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      .ring .fill{transition:none}
+      .tick,.card{animation:none}
+      .confetti i{animation:none}
+    }
+  </style>
+
+
+
+<!-- Utmify -->
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+<script>
+  window.pixelId = "6a442062ca1915cae75ce1ee";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+<!-- End Utmify -->
+
+
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xg9mitkds8");
+</script>
+</head>
+<body>
+
+  <main class="stage page-fade">
+    <section class="card" role="dialog" aria-labelledby="vTitle">
+      <div class="earn-pop" id="earnPop"><span class="coin"></span>Reward program unlocked 🎉</div>
+
+      <div class="head"><span class="sq"></span> Secure Gateway</div>
+
+      <div class="ring-wrap" aria-hidden="true">
+        <svg class="ring" viewBox="0 0 170 170">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#22c55e"></stop>
+              <stop offset="100%" stop-color="#16a34a"></stop>
+            </linearGradient>
+          </defs>
+          <circle class="track" cx="85" cy="85" r="75"></circle>
+          <circle class="fill" cx="85" cy="85" r="75" style="stroke-dashoffset: 433.54;"></circle>
+        </svg>
+        <div class="pct" id="pct">8%</div>
+      </div>
+
+      <h1 class="title" id="vTitle">Checking Your Access</h1>
+      <p class="status" id="status">Running security verification...</p>
+
+      <ul class="list" id="list">
+        <li class="item" data-step="1">
+          <span class="dot"></span>
+          <span class="label">Browser integrity check</span>
+          <span class="state">PENDING</span>
+        </li>
+        <li class="item" data-step="2">
+          <span class="dot"></span>
+          <span class="label">IP validation</span>
+          <span class="state">PENDING</span>
+        </li>
+        <li class="item" data-step="3">
+          <span class="dot"></span>
+          <span class="label">Human activity analysis</span>
+          <span class="state">PENDING</span>
+        </li>
+      </ul>
+
+      <div class="foot">Protected connection • Secure gateway</div>
+
+      <div class="success" id="success" aria-hidden="true">
+        <div class="confetti" id="confetti"></div>
+        <div class="success-card" role="alert">
+          <div class="tick" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"></polyline></svg>
+          </div>
+          <h2 class="s-title">Access Granted ✓</h2>
+          <p class="s-sub">Secure connection established. Redirecting you now...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  (function(){
+    var NEXT='/v1/';
+    var DURATION=3800;
+    var STEPS=[
+      {until:34, label:'Running browser integrity check...',  status:'PASSED'},
+      {until:68, label:'Validating IP address...',            status:'VERIFIED'},
+      {until:100,label:'Analyzing human activity...',         status:'COMPLETE'}
+    ];
+
+    var pct=document.getElementById('pct');
+    var fill=document.querySelector('.ring .fill');
+    var status=document.getElementById('status');
+    var items=document.querySelectorAll('#list .item');
+    var success=document.getElementById('success');
+    var earnPop=document.getElementById('earnPop');
+    var CIRC=2*Math.PI*75;
+
+    function setProgress(p){
+      pct.textContent=p+'%';
+      fill.style.strokeDashoffset=String(CIRC-(CIRC*p/100));
+    }
+    function activate(i,s){
+      var c=items[i]; if(!c||c.classList.contains('passed')) return;
+      c.classList.add('passed');
+      c.querySelector('.state').textContent=s;
+    }
+    function spawnConfetti(){
+      var host=document.getElementById('confetti');
+      var colors=['#22c55e','#16a34a','#fde68a','#f59e0b','#60a5fa','#a78bfa'];
+      for(var i=0;i<26;i++){
+        var s=document.createElement('i');
+        s.style.left=(4+Math.random()*92)+'%';
+        s.style.background=colors[i%colors.length];
+        s.style.animationDelay=(Math.random()*280)+'ms';
+        s.style.transform='rotate('+(Math.random()*360)+'deg)';
+        host.appendChild(s);
+      }
+      setTimeout(function(){host.innerHTML='';},1800);
+    }
+    function nextUrl(){
+      var url=new URLSearchParams(window.location.search);
+      var parts=NEXT.split('?');
+      var hp=new URLSearchParams(parts[1]||'');
+      hp.forEach(function(v,k){ if(!url.has(k)) url.set(k,v); });
+      var q=url.toString();
+      return parts[0]+(q?'?'+q:'');
+    }
+    function showSuccess(){
+      success.classList.add('open');
+      success.setAttribute('aria-hidden','false');
+      spawnConfetti();
+      setTimeout(function(){ window.location.replace(nextUrl()); }, 1200);
+    }
+    function run(){
+      setProgress(0);
+      var t0=performance.now();
+      var done=false;
+      function tick(now){
+        var elapsed=now-t0;
+        var p=Math.min(100,Math.round((elapsed/DURATION)*100));
+        setProgress(p);
+        for(var i=0;i<STEPS.length;i++){
+          if(p>=STEPS[i].until-1 && !items[i].classList.contains('passed')) activate(i,STEPS[i].status);
+          if(p<STEPS[i].until){ status.textContent=STEPS[i].label; break; }
+        }
+        if(p>=34 && !earnPop.classList.contains('show')) earnPop.classList.add('show');
+        if(p<100) requestAnimationFrame(tick);
+        else if(!done){
+          done=true;
+          activate(0,'PASSED');activate(1,'VERIFIED');activate(2,'COMPLETE');
+          status.textContent='All checks passed.';
+          pct.classList.add('done');
+          setTimeout(showSuccess,260);
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    if(document.readyState==='loading'){
+      document.addEventListener('DOMContentLoaded',function(){ setTimeout(run,250); });
+    } else {
+      setTimeout(run,250);
+    }
+  })();
+  </script>
+
+
+</body></html>

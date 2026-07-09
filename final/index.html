@@ -1,0 +1,484 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<script>
+(function() {
+  try {
+    var urlParams = new URLSearchParams(window.location.search);
+
+    // Salva UTMs se vieram na URL
+    var hasUtms = urlParams.has('utm_source') || urlParams.has('utm_medium') || urlParams.has('utm_campaign');
+    if (hasUtms) {
+      var params = {};
+      ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id'].forEach(function(k) {
+        var v = urlParams.get(k);
+        if (v) params[k] = v;
+      });
+      localStorage.setItem('TrackingParams', JSON.stringify(params));
+    }
+
+    // Salva sck SOMENTE se veio explicitamente na URL (nao injeta automaticamente)
+    var sck = urlParams.get('sck');
+    if (sck) localStorage.setItem('IndexTrack', sck);
+
+    // Recupera UTMs perdidos - mas NAO injeta sck se nao veio na URL
+    if (!hasUtms) {
+      var saved = localStorage.getItem('TrackingParams');
+      if (!saved) return;
+      var savedUtms = JSON.parse(saved);
+      var rebuild = new URLSearchParams(window.location.search);
+      for (var k in savedUtms) {
+        if (savedUtms.hasOwnProperty(k) && !rebuild.has(k)) rebuild.set(k, savedUtms[k]);
+      }
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + '?' + rebuild.toString());
+      }
+    }
+  } catch(e) {}
+})();
+</script>
+
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VSL4 - Video</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <!-- PRELOADS: AB-player.js, smartplayer and cdn prefetch -->
+<script>!function(i,n){i._plt=i._plt||(n&&n.timeOrigin?n.timeOrigin+n.now():Date.now())}(window,performance);</script>
+<link rel="preload" href="https://scripts.converteai.net/c09b0b90-42cf-46ad-8698-38bcefe1fc9c/ab-test/6a45dff1bf866e5a872538a7/player.js" as="script">
+<link rel="preload" href="https://scripts.converteai.net/lib/js/smartplayer-wc/v4/smartplayer.js" as="script">
+<link rel="dns-prefetch" href="https://cdn.converteai.net">
+<link rel="dns-prefetch" href="https://scripts.converteai.net">
+<link rel="dns-prefetch" href="https://images.converteai.net">
+<link rel="dns-prefetch" href="https://m3u8.vturb.net">
+<link rel="dns-prefetch" href="https://license.vturb.com">
+<!-- Utmify -->
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+<script>
+  window.pixelId = "6a442062ca1915cae75ce1ee";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+<!-- End Utmify -->
+
+
+  <script src="js/lucide.js"></script>
+  <style>
+    :root{
+      --max-width: 100%;
+      --content-max: 720px;
+      --bg: #ffffff;
+      --text: #222;
+      --muted: #9aa0a6;
+      --accent: #1fb24b;
+      --card-bg: #fff;
+      --gap: 14px;
+      --title-color: #173642;
+    }
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; margin:0; background:var(--bg); font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, Arial; color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+    .board{ max-width:var(--max-width); margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
+    .vsl-header{ display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid #f0f0f0; height:68px }
+    .logo-wrap img{ width:133px; height:40px; object-fit:contain; display:block; }
+    .wallet{ display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:8px; border:2px dashed rgba(31,178,75,0.62); background: #fff; color:#0b9b3a; font-weight:700; }
+    .wallet-img{ width:22px; height:22px; border-radius:6px; object-fit:cover; display:block; }
+  .wallet-amount{ font-size: 27px; }
+    .vsl-content{ flex:1 1 auto; padding: 0; }
+    .player-wrap{ width:100%; max-width:100%; margin:0 auto; background:transparent; }
+    .video-top-title{ text-align:center; font-weight:700; color:var(--title-color); margin:0 auto; font-size:24px; padding:10px 8px; background:transparent; }
+    .sound-note{ display:flex; align-items:center; justify-content:center; gap:8px; color:#2b3b44; margin-top:8px; font-weight:500; background:transparent; padding:8px 0; }
+    vturb-anchor-button {
+      background: red !important;
+      border-radius: 10px;
+    }
+
+    .video-top-title {
+      background: #e5e7eb80;
+      border-radius: 24px 24px 0 0;
+      border-top: 1px solid #bbbdc180;
+      padding-top: 22px !important;
+    }
+
+    .video-top-title, .video-bottom-title {
+      font-size: 25px;
+      color: #000 !important;
+      font-weight: 500;
+    }
+    .comments-wrap{ width:100%; margin:14px auto 28px; background:#fff; border-radius:14px; padding:10px; box-shadow: 0 6px 22px rgba(207,212,215,0.82); border: 1px solid #cfd4d78f; }
+    .comments-header{ display:flex; align-items:center; justify-content:space-between; padding:8px 6px; margin-bottom:6px; }
+    .facebook-label{ display:flex; align-items:center; gap:8px; color:#6b7280; font-weight:400; }
+    .comments-count{ color:#6b7280; font-weight:400; font-size:13px; }
+    .comment-progress{ height:6px; background:#eef2f4; border-radius:999px; overflow:hidden; margin-bottom:8px; }
+  .comment-progress .fill{ height:100%; width:0%; background: linear-gradient(90deg, #b7b7b740, #bfbfbf63); transform-origin:left center; animation: progressFill 10s linear forwards; }
+    @keyframes progressFill { from{ width:0%; } to{ width:100%; } }
+    .comment-row{ display:flex; gap:12px; padding:12px 8px; border-radius:8px; background:#fff; margin-bottom:10px; align-items:flex-start; }
+    .comment-avatar{ width:44px; height:44px; border-radius:50%; overflow:hidden; flex:0 0 44px; background:#f3f3f3; }
+    .comment-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .comment-body{ flex:1 1 auto; }
+   .comment-name{ font-weight:700; color:#000; font-size:14px; }
+    .comment-time{ font-size:12px; color:#8b97a0; margin-left:8px; }
+   /* Make the time appear below the name instead of beside it.
+     Many comment rows use an inline flex container; target that and force stacking. */
+   .comment-body > div[style] { display: block !important; }
+   .comment-time { display: block !important; margin-left: 0 !important; margin-top: 4px; }
+    .comment-text{ margin-top:6px; color:#333; line-height:1.5; font-size:14px; }
+    .mobi{ display:none; }
+    .desk{ display:block; }
+    @media (max-width:767px){
+      :root { --content-max:360px; }
+      .logo-wrap img{ width: 124px; height: 32px; }
+       .wallet-amount{ font-size: 25px; }
+      .video-top-title, .video-bottom-title{ font-size: 17px; }
+      .desk { display:none; }
+      .mobi { display:block; }
+    }
+    
+    /* YouTube Live Chat */
+    .live-chat{background:#fff;border-radius:16px;overflow:hidden;margin:20px auto;max-width:640px;width:100%;box-shadow:0 2px 12px rgba(0,0,0,.08);border:1px solid #e0e0e0}
+    .live-chat-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fafafa;border-bottom:1px solid #eee}
+    .live-chat-left{display:flex;align-items:center;gap:10px}
+    .live-badge{display:flex;align-items:center;gap:5px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+    .live-badge .live-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:livePulse 1.2s ease-in-out infinite}
+    @keyframes livePulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .live-viewers{display:flex;align-items:center;gap:5px;color:#666;font-size:11px;font-weight:500}
+    .live-viewers .eye-icon{width:14px;height:14px}
+    .live-chat-header-right{color:#999;font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+    .live-chat-messages{padding:8px 10px;height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth}
+    .live-chat-messages::-webkit-scrollbar{width:4px}
+    .live-chat-messages::-webkit-scrollbar-track{background:transparent}
+    .live-chat-messages::-webkit-scrollbar-thumb{background:#ddd;border-radius:999px}
+    .live-msg{display:flex;gap:10px;align-items:flex-start;animation:msgSlide .3s cubic-bezier(.15,.85,.3,1) both;padding:4px 6px;border-radius:8px;transition:background .2s}
+    .live-msg:hover{background:rgba(0,0,0,.04)}
+    @keyframes msgSlide{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+    .live-msg-avatar{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase}
+    .live-msg-body{flex:1;min-width:0}
+    .live-msg-name{font-size:12px;font-weight:700;color:#333;display:inline}
+    .live-msg-time{font-size:10px;color:#999;margin-left:6px}
+    .live-msg-text{font-size:13px;color:#555;line-height:1.4;margin-top:2px;word-wrap:break-word}
+    .live-chat-footer{padding:8px 12px;background:#fafafa;border-top:1px solid #eee;display:flex;align-items:center;gap:8px}
+    .live-chat-input{flex:1;background:#f5f5f5;border:none;border-radius:8px;padding:8px 12px;color:#333;font-size:13px;outline:none;font-family:inherit}
+    .live-chat-input::placeholder{color:#bbb}
+    .live-chat-send{width:32px;height:32px;border-radius:50%;background:#f0f0f0;border:none;color:#999;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .live-chat-send:hover{background:#e0e0e0;color:#333}
+    @media (max-width:480px){.live-chat{border-radius:12px;margin:14px auto}.live-chat-messages{height:280px}}
+  </style>
+
+<script src="js/player.js" async=""></script><script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xg9mitkds8");
+</script>
+</head>
+<body>
+  <div class="board" role="main" aria-label="VSL4">
+    <header class="vsl-header" role="banner">
+      <div class="logo-wrap"><img src="images/logo.png" alt="Logo"></div>
+      <div class="wallet" id="walletBox" aria-live="polite"><i data-lucide="wallet" width="22" height="22" class="wallet-img"></i><span class="wallet-amount" id="walletAmount">US$ 214</span></div>
+    </header>
+
+    <main class="vsl-content" role="main">
+      <div class="player-wrap" aria-label="player area">
+        <div class="video-top-title mobi">There is very little time left to<br> withdraw your available balance. 👇</div>
+        <div class="video-top-title desk">There is very little time left to withdraw your available balance. 👇</div>
+
+        <vturb-smartplayer id="ab-6a45dff1bf866e5a872538a7" style="display: block; margin: 0 auto; width: 100%; "></vturb-smartplayer> <script type="text/javascript"> var s=document.createElement("script"); s.src="https://scripts.converteai.net/c09b0b90-42cf-46ad-8698-38bcefe1fc9c/ab-test/6a45dff1bf866e5a872538a7/player.js", s.async=!0,document.head.appendChild(s); </script>
+
+        <div class="sound-note" aria-hidden="true">🔈 Check if your sound is turned on</div>
+      </div>
+
+
+
+      <div id="buyButtonWrap" style="display:none; text-align:center; margin:20px auto; max-width:400px;">
+        <a href="https://checkout.cooud.com/01KW10ZYJ7APP9R7QBE55WEC5P" id="buyButton" class="go-to-checkout" style="display:inline-block; background:#d80000; color:#fff; font-size:22px; font-weight:900; padding:16px 48px; border-radius:12px; text-decoration:none; letter-spacing:1px; box-shadow:0 4px 8px rgba(216,0,0,0.5); animation:pulse 2s infinite;">START NOW 💰</a>
+      </div>
+
+
+      <style>
+        @keyframes pulse {
+          0% { transform:scale(1); }
+          50% { transform:scale(1.05); }
+          100% { transform:scale(1); }
+        }
+      </style>
+      <!-- YouTube Live Chat -->
+      <div class="live-chat">
+        <div class="live-chat-header">
+          <div class="live-chat-left">
+            <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+            <div class="live-viewers">
+              <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span id="liveViewerCount">1.8K</span>
+            </div>
+          </div>
+          <div class="live-chat-header-right">Live Chat</div>
+        </div>
+        <div class="live-chat-messages" id="liveChatMessages"></div>
+        <div class="live-chat-footer">
+          <input class="live-chat-input" type="text" placeholder="Send a message..." disabled>
+          <button class="live-chat-send" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="vsl-footer">
+      <div style="text-align:center; padding:12px 0; color:#c4c7c9;">Secure • Fast • Anonymous</div>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      function renderWallet() {
+        var el = document.getElementById('walletAmount');
+        if (!el) return;
+        try {
+          var raw = sessionStorage.getItem('vsl_wallet_amount') || '213.99';
+          var v = Math.round(parseFloat(raw) || 0);
+          el.textContent = 'US$ ' + v;
+        } catch (e) {
+          el.textContent = 'US$ 213.99';
+        }
+      }
+
+      function initCommentsRotation() {
+        var wrap = document.querySelector('.comments-wrap');
+        if (!wrap) { return; }
+
+        var labelEl = document.getElementById('commentsCount');
+  var INTERVAL = 10000; // increased by 5s as requested
+        var timer = null;
+        var current = 0;
+
+        function collect() {
+          var progresses = Array.from(wrap.querySelectorAll('.comment-progress'));
+          var rows = Array.from(wrap.querySelectorAll('.comment-row'));
+          return { progresses: progresses, rows: rows };
+        }
+
+        function updateLabel(idxOneBased, total) {
+          if (labelEl) labelEl.textContent = idxOneBased + ' of ' + total + ' comments';
+        }
+
+        function showIndex(i) {
+          var data = collect();
+          var progresses = data.progresses;
+          var rows = data.rows;
+          var total = rows.length;
+          if (total === 0) { updateLabel(0,0); return; }
+          i = ((i % total) + total) % total;
+          current = i;
+
+          progresses.forEach(function(p){ p.style.display = 'none'; });
+          rows.forEach(function(r){ r.style.display = 'none'; });
+
+          var p = progresses[i];
+          var r = rows[i];
+          if (p) {
+            p.style.display = 'block';
+            var fill = p.querySelector('.fill');
+            if (fill) {
+              fill.style.animation = 'none';
+              void fill.offsetWidth;
+              fill.style.animation = 'progressFill 10s linear forwards';
+            }
+          }
+          if (r) r.style.display = 'flex';
+
+          updateLabel(i + 1, total);
+        }
+
+        function next() {
+          var data = collect();
+          if (data.rows.length === 0) return;
+          current = (current + 1) % data.rows.length;
+          showIndex(current);
+        }
+
+        function start() {
+          stop();
+          showIndex(current);
+          timer = setInterval(next, INTERVAL);
+        }
+        function stop() { if (timer) { clearInterval(timer); timer=null; } }
+
+        (function initialHide(){
+          var data = collect();
+          data.progresses.forEach(function(p){ p.style.display='none'; });
+          data.rows.forEach(function(r){ r.style.display='none'; });
+        })();
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,180); }, { once:true });
+        } else {
+          setTimeout(start,180);
+        }
+      }
+
+      renderWallet();
+      initCommentsRotation();
+
+      // Show buy button after 8min20s (500s)
+      setTimeout(function() {
+        var btnWrap = document.getElementById('buyButtonWrap');
+        if (btnWrap) btnWrap.style.display = 'block';
+      }, 500000);
+
+      // Initialize Lucide icons
+      lucide.createIcons();
+    })();
+  </script>
+
+  <!-- Live Chat Simulation -->
+  <script>
+  (function(){
+    var CHAT_USERS = [
+      {name:'Sarah Johnson',color:'#16a34a',msgs:['Just withdrew my $214! This is insane! 🔥','It actually works!!!','My balance updated instantly 🎉','I can\'t believe this is real','Been telling all my friends about this']},
+      {name:'Mike Thompson',color:'#0ea5e9',msgs:['Finally got my payout 🙌','This is the best thing ever','Straight to my account!','So happy right now','Waited for this moment!']},
+      {name:'Emma Wilson',color:'#f59e0b',msgs:['OMG I just got the money!! 🎉','It\'s really happening!','Check your balance guys','I\'m shaking right now 😱','This changed my life']},
+      {name:'John Davis',color:'#8b5cf6',msgs:['Withdrew successfully! ✅','Can\'t believe it was this easy','Already planning what to buy','My family is so happy','This is a game changer']},
+      {name:'Olivia Brown',color:'#ef4444',msgs:['Got my $214!!! 💃','I\'m literally crying rn','Thank you so much!!','Best day ever','Immediately withdrew!']},
+      {name:'Liam Garcia',color:'#10b981',msgs:['Money is already in my account','Worked perfectly for me','So glad I did this','My balance updated!','100% legit']},
+      {name:'Sophia Lee',color:'#f472b6',msgs:['Just did mine too!','It processes so fast','Love this program 💚','Took less than a minute','Already spent it lol']},
+      {name:'Noah Martinez',color:'#06b6d4',msgs:['Can confirm, it works','Got the withdrawal instantly','Best decision ever','My wife couldn\'t believe it','Telling everyone I know']},
+      {name:'Isabella Taylor',color:'#eab308',msgs:['Mine just went through!','So excited right now 🎉','This is life-changing','Easy and fast!','Definitely recommend']},
+      {name:'Ethan Anderson',color:'#a855f7',msgs:['Worked first try!','No issues at all','Got the full amount','My doubts were wrong','This is legitimate']}
+    ];
+    var PHRASES = [
+      'I can\'t believe this is real!',
+      'Just got my withdrawal too! 🔥',
+      'This is actually life changing 🙏',
+      'Already in my account!',
+      'Best thing I\'ve done all year',
+      'Sharing this with everyone I know!',
+      'Finally! It\'s about time 🙌',
+      'The money is REAL!',
+      'I\'m telling you guys, it works!',
+      'My jaw literally dropped 😱',
+      'This is not a scam!',
+      'Just checked my bank, it\'s there!',
+      'Waited my whole life for this',
+      'Literally crying right now 🥹',
+      'My family is so happy!',
+      'I was skeptical but it works!',
+      'Easy money, literally! 💰',
+      'This changed my life!',
+      'I\'m so grateful for this 🙏',
+      'Instant withdrawal! Amazing!'
+    ];
+    var VIEWER_COUNTS = ['1.8K','1.9K','2.0K','2.1K','2.2K','2.3K','2.4K','2.5K','2.4K','2.3K','2.2K','2.1K','2.2K','2.3K','2.4K'];
+    var container = document.getElementById('liveChatMessages');
+    var viewerEl = document.getElementById('liveViewerCount');
+    if(!container) return;
+
+    var viewerIdx = 0;
+    var userMsgIdx = {};
+
+    function getInitials(name){
+      return name.split(' ').map(function(w){return w[0]}).join('').substring(0,2);
+    }
+
+    function addMessage(user){
+      if(!user) user = CHAT_USERS[Math.floor(Math.random() * CHAT_USERS.length)];
+      var text;
+      if(!userMsgIdx[user.name]) userMsgIdx[user.name] = 0;
+      if(userMsgIdx[user.name] < user.msgs.length){
+        text = user.msgs[userMsgIdx[user.name]];
+        userMsgIdx[user.name]++;
+      } else {
+        text = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+      }
+
+      var msg = document.createElement('div');
+      msg.className = 'live-msg';
+      msg.innerHTML =
+        '<div class="live-msg-avatar" style="background:'+user.color+'">'+getInitials(user.name)+'</div>'+
+        '<div class="live-msg-body">'+
+          '<span class="live-msg-name">'+user.name+'</span>'+
+          '<span class="live-msg-time">just now</span>'+
+          '<div class="live-msg-text">'+text+'</div>'+
+        '</div>';
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+
+      while(container.children.length > 50) container.removeChild(container.firstChild);
+    }
+
+    var initialBatch = [CHAT_USERS[0],CHAT_USERS[2],CHAT_USERS[4],CHAT_USERS[1],CHAT_USERS[3],CHAT_USERS[5],CHAT_USERS[6],CHAT_USERS[7]];
+    initialBatch.forEach(function(u){ addMessage(u); });
+
+    function scheduleNext(){
+      setTimeout(function(){ addMessage(); scheduleNext(); }, 1500 + Math.random() * 4000);
+    }
+    scheduleNext();
+
+    setInterval(function(){
+      if(viewerEl){ viewerIdx = (viewerIdx + 1) % VIEWER_COUNTS.length; viewerEl.textContent = VIEWER_COUNTS[viewerIdx]; }
+    }, 8000);
+
+    setInterval(function(){
+      var times = container.querySelectorAll('.live-msg-time');
+      var labels = ['just now','1m ago','2m ago','3m ago','4m ago','5m ago','6m ago','7m ago','8m ago','9m ago','10m ago','12m ago','15m ago','18m ago'];
+      for(var i=0;i<times.length;i++) times[i].textContent = labels[Math.min(i, labels.length-1)];
+    }, 15000);
+  })();
+  </script>
+
+  <!-- BUTTON FORCER -->
+  <script>
+  (function() {
+    function forceParamsOnButtons() {
+      try {
+        var currentParams = window.location.search;
+        if (!currentParams) return;
+        
+        var selectors = ['a[href*="video"]', 'a[href*="withdraw"]', 'a[href*="final"]', 'a[href*="checkout"]', '#buyButton', '.go-to-checkout', 'button[onclick*="video"]', 'button[onclick*="withdraw"]', '[data-href*="video"]'];
+        var elements = document.querySelectorAll(selectors.join(','));
+        
+        for (var i = 0; i < elements.length; i++) {
+          var element = elements[i];
+          if (element.hasAttribute('data-utm-forced')) continue;
+          
+          element.setAttribute('data-utm-forced', 'true');
+          element.addEventListener('click', function(e) {
+            try {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              var href = this.getAttribute('href') || this.getAttribute('data-href') || this.getAttribute('data-url');
+              if (!href) return;
+              var baseHref = href.split('?')[0].split('#')[0];
+              
+              // Fire InitiateCheckout event
+              try {
+                if (typeof fbq === 'function') fbq('track', 'InitiateCheckout');
+              } catch (pxErr) {}
+              
+              window.location.href = baseHref + currentParams;
+            } catch (err) {}
+          }, true);
+        }
+      } catch (e) {}
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', forceParamsOnButtons);
+    } else {
+      forceParamsOnButtons();
+    }
+    
+    if (window.MutationObserver) {
+      var observer = new MutationObserver(function(mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+          if (mutations[i].addedNodes.length > 0) forceParamsOnButtons();
+        }
+      });
+      if (document.body) observer.observe(document.body, {childList: true, subtree: true});
+    }
+  })();
+  </script>
+
+
+</body></html>
